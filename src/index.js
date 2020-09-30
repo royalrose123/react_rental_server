@@ -170,7 +170,7 @@ const resolvers = {
     uploadFile: async (root, args, context) => {
       const { file } = args;
 
-      uploadFile(file, 1).then(result => console.log('result 99999', result))
+       uploadFile(file, 3).then(result => console.log('result 99999', result)).catch(error => console.log('uploadFile error', error))
 
     },
 

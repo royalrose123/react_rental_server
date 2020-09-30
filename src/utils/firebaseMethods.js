@@ -1,6 +1,7 @@
 global.XMLHttpRequest = require("xhr2");
 
 const firebase = require("firebase/app");
+const { v4: uuid } = require("uuid");
 require("firebase/storage");
 require("firebase/database");
 
@@ -35,7 +36,7 @@ function setFirebaseData(ref, id, data) {
     .update({ ...data });
 }
 
-function uploadFile(file, thisPostId) {
+function uploadFile(file, postId) {
   return new Promise(async (resolve, reject) => {
     const { createReadStream, filename, mimetype, encoding } = await file;
 
@@ -44,15 +45,18 @@ function uploadFile(file, thisPostId) {
     const storage = firebase.storage();
     const storageRef = storage.ref();
 
+    const newFilename = `${uuid()}_${filename}`;
+    const pathname = `images/house${postId}/${newFilename}`;
+
     stream.on("data", async (data) => {
-      const uploadImg = storageRef.child(`images/${filename}`).put(data);
+      const uploadImg = storageRef.child(pathname).put(data);
 
       uploadImg.on(
         "state_changed",
         function (snapshot) {
           let progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(`${thisPostId} progress`, progress);
+          console.log(`postId-${postId} progress`, progress);
           switch (progress) {
             case 0:
               break;
@@ -61,10 +65,8 @@ function uploadFile(file, thisPostId) {
           }
           switch (snapshot.state) {
             case firebase.storage.TaskState.PAUSED: // or 'paused'
-              //                console.log('Upload is paused');
               break;
             case firebase.storage.TaskState.RUNNING: // or 'running'
-              //                console.log('Upload is running');
               break;
           }
         },
@@ -84,11 +86,10 @@ function uploadFile(file, thisPostId) {
           }
         },
         function () {
-          let pathReference = storageRef.child(`images/${filename}`);
+          let pathReference = storageRef.child(pathname);
 
           pathReference.getDownloadURL().then(function (url) {
-            console.log("getDownloadURL url 66666", url);
-            return resolve(url);
+            return resolve({ url, newFilename });
           });
         }
       );

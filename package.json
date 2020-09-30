@@ -13,8 +13,7 @@
   "dependencies": {
     "apollo-server": "^2.18.1",
     "firebase": "^7.21.1",
-    "firebase-admin": "^9.2.0",
-    "uuid-v4": "^0.1.0",
+    "uuid": "^8.3.0",
     "xhr2": "^0.2.0"
   }
 }
