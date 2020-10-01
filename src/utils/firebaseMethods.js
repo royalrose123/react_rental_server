@@ -30,7 +30,7 @@ function getFirebaseData(ref) {
 }
 
 function setFirebaseData(ref, id, data) {
-  return app
+  return firebase
     .database()
     .ref(`${ref}/${id}`)
     .update({ ...data });
@@ -45,55 +45,30 @@ function uploadFile(file, postId) {
     const storage = firebase.storage();
     const storageRef = storage.ref();
 
-    const newFilename = `${uuid()}_${filename}`;
-    const pathname = `images/house${postId}/${newFilename}`;
+    const newFilename = `${filename}`;
+    const pathname = `images/house${postId}/${uuid()}_${newFilename}`;
 
-    stream.on("data", async (data) => {
-      const uploadImg = storageRef.child(pathname).put(data);
+    const tempFile = [];
 
-      uploadImg.on(
-        "state_changed",
-        function (snapshot) {
-          let progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(`postId-${postId} progress`, progress);
-          switch (progress) {
-            case 0:
-              break;
-            case 100:
-              break;
-          }
-          switch (snapshot.state) {
-            case firebase.storage.TaskState.PAUSED: // or 'paused'
-              break;
-            case firebase.storage.TaskState.RUNNING: // or 'running'
-              break;
-          }
-        },
-        function (error) {
-          // A full list of error codes is available at
-          // https://firebase.google.com/docs/storage/web/handle-errors
-          switch (error.code) {
-            case "storage/unauthorized":
-              console.log("storage/unauthorized", error);
-              break;
-            case "storage/canceled":
-              console.log("storage/canceled", error);
-              break;
-            case "storage/unknown":
-              console.log("storage/unknown", error);
-              break;
-          }
-        },
-        function () {
-          let pathReference = storageRef.child(pathname);
+    stream
+      .on("data", async (data) => {
+        tempFile.push(data);
+      })
+      .on("end", async () => {
+        var newbuff = Buffer.concat(tempFile);
 
-          pathReference.getDownloadURL().then(function (url) {
-            return resolve({ url, newFilename });
-          });
-        }
-      );
-    });
+        storageRef
+          .child(pathname)
+          .put(newbuff)
+          .then((result) => {
+            let pathReference = storageRef.child(pathname);
+
+            pathReference.getDownloadURL().then(function (url) {
+              return resolve({ url, filename: newFilename });
+            });
+          })
+          .catch((error) => console.log("uploadImg error", error));
+      });
   });
 }
 

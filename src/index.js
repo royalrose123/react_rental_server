@@ -1,6 +1,4 @@
 const { ApolloServer, gql } = require("apollo-server");
-const path = require("path");
-const fs = require("fs");
 
 const {
   getFirebaseData,
@@ -14,6 +12,7 @@ const typeDefs = gql`
     age: Int
   }
 
+  # House schema
   input DeviceInput {
     airConditioner: Boolean
     table: Boolean
@@ -96,6 +95,23 @@ const typeDefs = gql`
     lng: Float
   }
 
+  input FileInput {
+    file: Upload
+    fileUrl: String
+    filename: String
+  }
+
+  type File {
+    file: Upload
+    fileUrl: String
+    filename: String
+  }
+
+  type Image {
+    filename: String
+    url: String
+  }
+
   type House {
     id: Int!
     postId: Int!
@@ -119,18 +135,17 @@ const typeDefs = gql`
     totalFloor: Int
     address: String
     latLng: LatLng
+    fileList: [File]
+    houseImg: [Image]
   }
 
   type Query {
-    "A simple type for getting started!"
     hello: String
     users: [Users]
     house: [House]
   }
 
   type Mutation {
-    uploadFile(file: Upload!): Upload
-
     addHouse(
       city: String
       device: DeviceInput
@@ -152,6 +167,7 @@ const typeDefs = gql`
       totalFloor: Int
       address: String
       latLng: LatLngInput
+      fileList: [FileInput]
     ): House
 
     addUser(name: String, age: Int): Users
@@ -167,29 +183,33 @@ const resolvers = {
   },
 
   Mutation: {
-    uploadFile: async (root, args, context) => {
-      const { file } = args;
+    addHouse: async (root, args, context) => {
+      console.log("addHouse args", args);
 
-       uploadFile(file, 3).then(result => console.log('result 99999', result)).catch(error => console.log('uploadFile error', error))
+      const { fileList } = await args;
 
-    },
-
-    addHouse: (root, args, context) => {
-      console.log("root", root);
-      console.log("args", args);
-      console.log("context", context);
-
-      getFirebaseData("house")
-        .then((result) => {
-          console.log("result", result);
+      await getFirebaseData("house")
+        .then(async (result) => {
           const resultLength = result.length;
           const id = resultLength === 0 ? 0 : result[resultLength - 1].postId;
           const postId = id === 0 ? 1 : id + 1;
 
-          setFirebaseData("house", id, { ...args, postId });
+          const { fileList, ...restArgs } = args;
+
+          const fileListPromise = await fileList.map((file) => {
+            return uploadFile(file.file, postId);
+          });
+
+          const newFileList = await Promise.all(fileListPromise);
+
+          setFirebaseData("house", id, {
+            ...restArgs,
+            postId,
+            houseImg: newFileList,
+          });
         })
         .catch((error) => {
-          console.log("error", error);
+          console.log("error 44444", error);
         });
     },
 
@@ -198,7 +218,6 @@ const resolvers = {
 
       getFirebaseData("users")
         .then((result) => {
-          console.log("result", result);
           const resultLength = result.length;
           const id = resultLength === 0 ? 0 : result[resultLength - 1].userId;
           const userId = id === 0 ? 1 : id + 1;
