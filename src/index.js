@@ -114,7 +114,7 @@ const typeDefs = gql`
 
   type House {
     id: Int!
-    postId: Int!
+    postId: Int
     city: String
     device: Device
     distict: String
@@ -142,7 +142,8 @@ const typeDefs = gql`
   type Query {
     hello: String
     users: [Users]
-    house: [House]
+    houses: [House]
+    house(postId: Int): House
   }
 
   type Mutation {
@@ -179,14 +180,13 @@ const resolvers = {
     // 需注意名稱一定要對到 Schema 中 field 的名稱
     hello: () => "world",
     users: () => getFirebaseData("users"),
-    house: (root, args, context) => getFirebaseData("house"),
+    houses: (root, args, context) => getFirebaseData("house"),
+    house: (root, args, context) => getFirebaseData("house", "postId", args.postId)
   },
 
   Mutation: {
     addHouse: async (root, args, context) => {
       console.log("addHouse args", args);
-
-      const { fileList } = await args;
 
       await getFirebaseData("house")
         .then(async (result) => {

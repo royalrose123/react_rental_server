@@ -18,15 +18,28 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
-function getFirebaseData(ref) {
-  return firebase
-    .database()
-    .ref(ref)
-    .once("value")
-    .then((snap) => snap.val())
-    .then((val) => {
-      return val ? Object.keys(val).map((key) => val[key]) : [];
-    });
+function getFirebaseData(ref, orderBy = null, value) {
+  if (!orderBy) {
+    return firebase
+      .database()
+      .ref(ref)
+      .once("value")
+      .then((snap) => snap.val())
+      .then((val) => {
+        return val ? Object.keys(val).map((key) => val[key]) : [];
+      });
+  } else {
+    return firebase
+      .database()
+      .ref(ref)
+      .orderByChild(orderBy)
+      .equalTo(value)
+      .once("value")
+      .then((snap) => snap.val())
+      .then((val) => {
+        return Array.isArray(val) ? val.filter(item => item)[0] : Object.values(val)[0];
+      });
+  }
 }
 
 function setFirebaseData(ref, id, data) {
