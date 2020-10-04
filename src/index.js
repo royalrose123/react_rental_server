@@ -4,14 +4,13 @@ const {
   getFirebaseData,
   setFirebaseData,
   uploadFile,
+  createUserAccount,
+  login,
+  logout,
+  verifyToken,
 } = require("./utils/firebaseMethods");
 
 const typeDefs = gql`
-  type Users {
-    name: String
-    age: Int
-  }
-
   # House schema
   input DeviceInput {
     airConditioner: Boolean
@@ -139,14 +138,60 @@ const typeDefs = gql`
     houseImg: [Image]
   }
 
+  input UserInput {
+    token: String
+    email: String
+    userId: String
+    displayName: String
+    photoURL: String
+    emailVerified: Boolean
+    phoneNumber: String
+  }
+
+  input TokenInput {
+    token: String
+  }
+
+  type Account {
+    email: String
+    password: String
+  }
+
+  type User {
+    token: String
+    gender: String
+    userId: String
+    displayName: String
+    phoneNumber: String
+    email: String
+    photoURL: String
+    emailVerified: Boolean
+  }
+
+  type ReturnMessage {
+    returnCode: String
+    message: String
+  }
+
   type Query {
     hello: String
-    users: [Users]
     houses: [House]
     house(postId: Int): House
+    user: User
   }
 
   type Mutation {
+    login(email: String, password: String): User
+    logout: ReturnMessage
+
+    createUser(email: String, password: String): Account
+    editUser(
+      gender: String
+      displayName: String
+      phoneNumber: String
+      email: String
+    ): User
+
     addHouse(
       city: String
       device: DeviceInput
@@ -170,24 +215,53 @@ const typeDefs = gql`
       latLng: LatLngInput
       fileList: [FileInput]
     ): House
-
-    addUser(name: String, age: Int): Users
   }
 `;
 
 const resolvers = {
   Query: {
-    // 需注意名稱一定要對到 Schema 中 field 的名稱
     hello: () => "world",
-    users: () => getFirebaseData("users"),
     houses: (root, args, context) => getFirebaseData("house"),
-    house: (root, args, context) => getFirebaseData("house", "postId", args.postId)
+    house: (root, args, context) =>
+      getFirebaseData("house", "postId", args.postId),
+    user: async (root, args, context) => {
+      const { userId } = context;
+
+      return getFirebaseData("user", "userId", userId);
+    },
   },
 
   Mutation: {
-    addHouse: async (root, args, context) => {
-      console.log("addHouse args", args);
+    login: async (root, args, context) => {
+      const data = { ...args };
+      const result = await login(data);
 
+      return result;
+    },
+    logout: async (root, args, context) => {
+      const data = { ...args };
+      const result = await logout(data);
+
+      return result;
+    },
+
+    editUser: async (root, args, context) => {
+      const { userId } = context;
+      const data = { ...args };
+      const result = await setFirebaseData("user", userId, {
+        ...data,
+      });
+
+      return result;
+    },
+    createUser: async (root, args, context) => {
+      const data = { ...args };
+      const result = await createUserAccount(data);
+
+      return result;
+    },
+
+    addHouse: async (root, args, context) => {
       await getFirebaseData("house")
         .then(async (result) => {
           const resultLength = result.length;
@@ -212,28 +286,21 @@ const resolvers = {
           console.log("error 44444", error);
         });
     },
-
-    addUser: (root, args, context) => {
-      const { name, age } = args;
-
-      getFirebaseData("users")
-        .then((result) => {
-          const resultLength = result.length;
-          const id = resultLength === 0 ? 0 : result[resultLength - 1].userId;
-          const userId = id === 0 ? 1 : id + 1;
-
-          setFirebaseData("users", id, { name, age, userId });
-        })
-        .catch((error) => {
-          console.log("error", error);
-        });
-    },
   },
 };
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  context: async ({ req }) => {
+    const token = req.headers.authorization || "";
+
+    if (!token) return;
+
+    const userId = await verifyToken(token);
+
+    return { userId };
+  },
 });
 
 server.listen().then(({ url }) => {
