@@ -108,12 +108,12 @@ const typeDefs = gql`
 
   input ImageInput {
     filename: String
-    url: String
+    fileUrl: String
   }
 
   type Image {
     filename: String
-    url: String
+    fileUrl: String
   }
 
   input HouseInput {

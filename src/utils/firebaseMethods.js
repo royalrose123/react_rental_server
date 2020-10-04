@@ -89,7 +89,7 @@ function uploadFile(file, postId) {
             let pathReference = storageRef.child(pathname);
 
             pathReference.getDownloadURL().then(function (url) {
-              return resolve({ url, filename: newFilename });
+              return resolve({ fileUrl: url, filename: newFilename });
             });
           })
           .catch((error) => console.log("uploadImg error", error));
