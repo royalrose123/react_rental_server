@@ -98,12 +98,14 @@ const typeDefs = gql`
     file: Upload
     fileUrl: String
     filename: String
+    isExisted: Boolean
   }
 
   type File {
     file: Upload
     fileUrl: String
     filename: String
+    isExisted: Boolean
   }
 
   input ImageInput {
@@ -253,6 +255,32 @@ const typeDefs = gql`
       latLng: LatLngInput
       fileList: [FileInput]
     ): House
+
+    editHouse(
+      postId: Int
+      postUser: UserInput
+      city: String
+      device: DeviceInput
+      distinct: String
+      floor: Int
+      houseDetail: String
+      livingroomAmount: Int
+      others: OthersInput
+      price: Int
+      priceInclude: PriceIncludeInput
+      require: RequireInput
+      restroomAmount: Int
+      roomAmount: Int
+      roomType: String
+      size: Int
+      street: String
+      surrounding: String
+      title: String
+      totalFloor: Int
+      address: String
+      latLng: LatLngInput
+      fileList: [FileInput]
+    ): House
   }
 `;
 
@@ -272,11 +300,8 @@ const resolvers = {
   User: {
     userPost: async (parent, args, context) => {
       const { userId } = parent;
-      console.log("parent", parent);
-
       const houses = await getFirebaseData("house");
 
-      console.log("houses", houses);
 
       return houses.filter((house) => house.postUser.userId === userId);
     },
@@ -316,8 +341,8 @@ const resolvers = {
       await getFirebaseData("house")
         .then(async (result) => {
           const resultLength = result.length;
-          const id = resultLength === 0 ? 0 : result[resultLength - 1].postId;
-          const postId = id === 0 ? 1 : id + 1;
+          const postId =
+            resultLength === 0 ? 0 : result[resultLength - 1].postId + 1;
 
           const { fileList, ...restArgs } = args;
 
@@ -327,7 +352,34 @@ const resolvers = {
 
           const newFileList = await Promise.all(fileListPromise);
 
-          setFirebaseData("house", id, {
+          setFirebaseData("house", postId, {
+            ...restArgs,
+            postId,
+            houseImg: newFileList,
+          });
+        })
+        .catch((error) => {
+          console.log("error 44444", error);
+        });
+    },
+
+    editHouse: async (root, args, context) => {
+      const { postId } = args;
+      await getFirebaseData("house")
+        .then(async (result) => {
+          const { fileList, ...restArgs } = args;
+
+          const fileListPromise = await fileList.map((file) => {
+            if (file.isExisted) {
+              return file;
+            } else {
+              return uploadFile(file.file, postId);
+            }
+          });
+
+          const newFileList = await Promise.all(fileListPromise);
+
+          setFirebaseData("house", postId, {
             ...restArgs,
             postId,
             houseImg: newFileList,
