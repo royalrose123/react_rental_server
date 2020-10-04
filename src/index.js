@@ -122,7 +122,7 @@ const typeDefs = gql`
     postId: Int
     city: String
     device: DeviceInput
-    distict: String
+    distinct: String
     floor: Int
     houseDetail: String
     livingroomAmount: Int
@@ -150,7 +150,7 @@ const typeDefs = gql`
     postId: Int
     city: String
     device: Device
-    distict: String
+    distinct: String
     floor: Int
     houseDetail: String
     livingroomAmount: Int
@@ -233,7 +233,7 @@ const typeDefs = gql`
       postUser: UserInput
       city: String
       device: DeviceInput
-      distict: String
+      distinct: String
       floor: Int
       houseDetail: String
       livingroomAmount: Int
