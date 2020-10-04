@@ -106,12 +106,46 @@ const typeDefs = gql`
     filename: String
   }
 
+  input ImageInput {
+    filename: String
+    url: String
+  }
+
   type Image {
     filename: String
     url: String
   }
 
+  input HouseInput {
+    postUser: UserInput
+    id: Int!
+    postId: Int
+    city: String
+    device: DeviceInput
+    distict: String
+    floor: Int
+    houseDetail: String
+    livingroomAmount: Int
+    others: OthersInput
+    price: Int
+    priceInclude: PriceIncludeInput
+    require: RequireInput
+    restroomAmount: Int
+    roomAmount: Int
+    roomType: String
+    size: Int
+    street: String
+    surrounding: String
+    title: String
+    totalFloor: Int
+    address: String
+    latLng: LatLngInput
+    fileList: [FileInput]
+    houseImg: [ImageInput]
+  }
+
   type House {
+    postUser: User
     id: Int!
     postId: Int
     city: String
@@ -138,16 +172,6 @@ const typeDefs = gql`
     houseImg: [Image]
   }
 
-  input UserInput {
-    token: String
-    email: String
-    userId: String
-    displayName: String
-    photoURL: String
-    emailVerified: Boolean
-    phoneNumber: String
-  }
-
   input TokenInput {
     token: String
   }
@@ -166,6 +190,19 @@ const typeDefs = gql`
     email: String
     photoURL: String
     emailVerified: Boolean
+    userPost: [House]
+  }
+
+  input UserInput {
+    token: String
+    gender: String
+    userId: String
+    displayName: String
+    phoneNumber: String
+    email: String
+    photoURL: String
+    emailVerified: Boolean
+    userPost: [HouseInput]
   }
 
   type ReturnMessage {
@@ -193,6 +230,7 @@ const typeDefs = gql`
     ): User
 
     addHouse(
+      postUser: UserInput
       city: String
       device: DeviceInput
       distict: String
@@ -228,6 +266,19 @@ const resolvers = {
       const { userId } = context;
 
       return getFirebaseData("user", "userId", userId);
+    },
+  },
+
+  User: {
+    userPost: async (parent, args, context) => {
+      const { userId } = parent;
+      console.log("parent", parent);
+
+      const houses = await getFirebaseData("house");
+
+      console.log("houses", houses);
+
+      return houses.filter((house) => house.postUser.userId === userId);
     },
   },
 

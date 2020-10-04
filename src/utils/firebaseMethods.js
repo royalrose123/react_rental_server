@@ -97,17 +97,6 @@ function uploadFile(file, postId) {
   });
 }
 
-// function editUser(data) {
-//   return firebase
-//     .auth()
-//     .then(async (result) => {
-//     })
-//     .catch((error) => {
-//       console.log("error", error);
-//       return error;
-//     });
-// }
-
 function createUserAccount(data) {
   return firebase
     .auth()
