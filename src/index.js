@@ -10,6 +10,7 @@ const {
   verifyToken,
 } = require("./utils/firebaseMethods");
 
+
 const typeDefs = gql`
   # House schema
   input DeviceInput {
@@ -135,6 +136,13 @@ const typeDefs = gql`
     max: Int
   }
 
+  input MapBoundsInput {
+    NELat: Float
+    NELng: Float
+    SWLat: Float
+    SWLng: Float
+  }
+
   input HouseInput {
     postUser: UserInput
     id: Int!
@@ -235,6 +243,7 @@ const typeDefs = gql`
       price: PriceInput
       roomAmount: [RoomAmountInput]
       roomType: [RoomTypeInput]
+      mapBounds: MapBoundsInput
     ): [House]
     house(postId: Int): House
     user: User

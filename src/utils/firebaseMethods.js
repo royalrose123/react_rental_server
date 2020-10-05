@@ -7,6 +7,8 @@ require("firebase/storage");
 require("firebase/database");
 require("firebase/auth");
 
+const { isPointInRange } = require("../utils/isPointInRange");
+
 const { TOKEN_ERROR } = require("../constants/firebaseMessage");
 const serviceAccount = require("../react-rental-db23c-firebase-adminsdk-t97xi-4e2d0d4613.json");
 
@@ -51,37 +53,42 @@ function getFirebaseData({ ref, orderBy = null, value, searchForm }) {
       .once("value")
       .then((snap) => {
         const data = snap.val();
-        const { price, roomAmount, roomType } = searchForm;
-        const { min, max } = price;
+        if (searchForm) {
+          const { price, roomAmount, roomType, mapBounds } = searchForm;
+          const { min, max } = price;
 
-        return data
-          .filter((house) => house.price >= min && house.price <= max) // 對 price 做 filter
-          .filter((house) => {
-            // 對 roomAmount 做 filter
-            const roomAmountValue = roomAmount
-              .filter((amount) => amount.isActive)
-              .map((amount) => amount.value);
+          return data
+            .filter((house) => house.price >= min && house.price <= max) // 對 price 做 filter
+            .filter((house) => {
+              // 對 roomAmount 做 filter
+              const roomAmountValue = roomAmount
+                .filter((amount) => amount.isActive)
+                .map((amount) => amount.value);
 
-            if (roomAmountValue.length === 0) return house; // roomAmountValue 為空代表沒有 filter
+              if (roomAmountValue.length === 0) return house; // roomAmountValue 為空代表沒有 filter
 
-            const isMatchRoomAmount =
-              roomAmountValue.indexOf(house.roomAmount) !== -1;
+              const isMatchRoomAmount =
+                roomAmountValue.indexOf(house.roomAmount) !== -1;
 
-            return isMatchRoomAmount;
-          })
-          .filter((house) => {
-            // 對 roomType 做 filter
-            const roomTypeValue = roomType
-              .filter((amount) => amount.isActive)
-              .map((amount) => amount.value);
+              return isMatchRoomAmount;
+            })
+            .filter((house) => {
+              // 對 roomType 做 filter
+              const roomTypeValue = roomType
+                .filter((amount) => amount.isActive)
+                .map((amount) => amount.value);
 
-            if (roomTypeValue.length === 0) return house; // roomTypeValue 為空代表沒有 filter
+              if (roomTypeValue.length === 0) return house; // roomTypeValue 為空代表沒有 filter
 
-            const isMatchRoomType =
-              roomTypeValue.indexOf(house.roomType) !== -1;
+              const isMatchRoomType =
+                roomTypeValue.indexOf(house.roomType) !== -1;
 
-            return isMatchRoomType;
-          });
+              return isMatchRoomType;
+            })
+            .filter((house) => isPointInRange(house.latLng, mapBounds));
+        } else {
+          return data;
+        }
       })
       .then((val) => {
         return val ? Object.keys(val).map((key) => val[key]) : [];
