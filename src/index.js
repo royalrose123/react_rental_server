@@ -118,6 +118,23 @@ const typeDefs = gql`
     fileUrl: String
   }
 
+  input RoomAmountInput {
+    name: Int
+    isActive: Boolean
+    value: Int
+  }
+
+  input RoomTypeInput {
+    name: String
+    isActive: Boolean
+    value: String
+  }
+
+  input PriceInput {
+    min: Int
+    max: Int
+  }
+
   input HouseInput {
     postUser: UserInput
     id: Int!
@@ -214,7 +231,11 @@ const typeDefs = gql`
 
   type Query {
     hello: String
-    houses: [House]
+    houses(
+      price: PriceInput
+      roomAmount: [RoomAmountInput]
+      roomType: [RoomTypeInput]
+    ): [House]
     house(postId: Int): House
     user: User
   }
@@ -287,21 +308,22 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     hello: () => "world",
-    houses: (root, args, context) => getFirebaseData("house"),
+    houses: (root, args, context) => {
+      return getFirebaseData({ ref: "house", searchForm: { ...args } });
+    },
     house: (root, args, context) =>
-      getFirebaseData("house", "postId", args.postId),
+      getFirebaseData({ ref: "house", orderBy: "postId", value: args.postId }),
     user: async (root, args, context) => {
       const { userId } = context;
 
-      return getFirebaseData("user", "userId", userId);
+      return getFirebaseData({ ref: "user", orderBy: "userId", value: userId });
     },
   },
 
   User: {
     userPost: async (parent, args, context) => {
       const { userId } = parent;
-      const houses = await getFirebaseData("house");
-
+      const houses = await getFirebaseData({ ref: "house" });
 
       return houses.filter((house) => house.postUser.userId === userId);
     },
@@ -338,7 +360,7 @@ const resolvers = {
     },
 
     addHouse: async (root, args, context) => {
-      await getFirebaseData("house")
+      await getFirebaseData({ ref: "house" })
         .then(async (result) => {
           const resultLength = result.length;
           const postId =
@@ -365,7 +387,7 @@ const resolvers = {
 
     editHouse: async (root, args, context) => {
       const { postId } = args;
-      await getFirebaseData("house")
+      await getFirebaseData({ ref: "house" })
         .then(async (result) => {
           const { fileList, ...restArgs } = args;
 

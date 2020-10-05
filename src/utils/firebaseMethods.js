@@ -28,17 +28,9 @@ admin.initializeApp({
   databaseURL: "https://react-rental-db23c.firebaseio.com",
 });
 
-function getFirebaseData(ref, orderBy = null, value) {
-  if (!orderBy) {
-    return firebase
-      .database()
-      .ref(ref)
-      .once("value")
-      .then((snap) => snap.val())
-      .then((val) => {
-        return val ? Object.keys(val).map((key) => val[key]) : [];
-      });
-  } else {
+function getFirebaseData({ ref, orderBy = null, value, searchForm }) {
+  if (orderBy) {
+    // get single data
     return firebase
       .database()
       .ref(ref)
@@ -50,6 +42,49 @@ function getFirebaseData(ref, orderBy = null, value) {
         return Array.isArray(val)
           ? val.filter((item) => item)[0]
           : Object.values(val)[0];
+      });
+  } else {
+    // get all data
+    return firebase
+      .database()
+      .ref(ref)
+      .once("value")
+      .then((snap) => {
+        const data = snap.val();
+        const { price, roomAmount, roomType } = searchForm;
+        const { min, max } = price;
+
+        return data
+          .filter((house) => house.price >= min && house.price <= max) // 對 price 做 filter
+          .filter((house) => {
+            // 對 roomAmount 做 filter
+            const roomAmountValue = roomAmount
+              .filter((amount) => amount.isActive)
+              .map((amount) => amount.value);
+
+            if (roomAmountValue.length === 0) return house; // roomAmountValue 為空代表沒有 filter
+
+            const isMatchRoomAmount =
+              roomAmountValue.indexOf(house.roomAmount) !== -1;
+
+            return isMatchRoomAmount;
+          })
+          .filter((house) => {
+            // 對 roomType 做 filter
+            const roomTypeValue = roomType
+              .filter((amount) => amount.isActive)
+              .map((amount) => amount.value);
+
+            if (roomTypeValue.length === 0) return house; // roomTypeValue 為空代表沒有 filter
+
+            const isMatchRoomType =
+              roomTypeValue.indexOf(house.roomType) !== -1;
+
+            return isMatchRoomType;
+          });
+      })
+      .then((val) => {
+        return val ? Object.keys(val).map((key) => val[key]) : [];
       });
   }
 }
@@ -139,7 +174,11 @@ function login(data) {
       } else {
         const token = await user.getIdToken(true);
 
-        const userInfo = await getFirebaseData("user", "userId", uid);
+        const userInfo = await getFirebaseData({
+          ref: "user",
+          orderBy: "userId",
+          value: uid,
+        });
 
         return {
           token,
@@ -166,7 +205,11 @@ function login(data) {
       } else {
         const token = await user.getIdToken();
 
-        const userInfo = await getFirebaseData("user", "userId", uid);
+        const userInfo = await getFirebaseData({
+          ref: "user",
+          orderBy: "userId",
+          value: uid,
+        });
 
         return {
           token,
