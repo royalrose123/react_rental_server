@@ -195,37 +195,7 @@ function login(data) {
           photoURL: userInfo.photoURL,
           emailVerified: userInfo.emailVerified,
           phoneNumber: userInfo.phoneNumber,
-        };
-      }
-    });
-}
-
-function login(data) {
-  return firebase
-    .auth()
-    .signInWithEmailAndPassword(data.email, data.password)
-    .then(async (result) => {
-      const { user } = result;
-      const { emailVerified, uid } = user;
-      if (!emailVerified) {
-        throw new Error("信箱尚未驗證，請先前往驗證");
-      } else {
-        const token = await user.getIdToken();
-
-        const userInfo = await getFirebaseData({
-          ref: "user",
-          orderBy: "userId",
-          value: uid,
-        });
-
-        return {
-          token,
-          email: userInfo.email,
-          userId: userInfo.userId,
-          displayName: userInfo.displayName,
-          photoURL: userInfo.photoURL,
-          emailVerified: userInfo.emailVerified,
-          phoneNumber: userInfo.phoneNumber,
+          gender: userInfo.gender,
         };
       }
     });
