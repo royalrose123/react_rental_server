@@ -1,7 +1,6 @@
+const { gql } = require('apollo-server')
 
-  const { gql } = require("apollo-server");
-
-  const typeDefs = gql`
+const typeDefs = gql`
   # House schema
   input DeviceInput {
     airConditioner: Boolean
@@ -229,12 +228,7 @@
 
   type Query {
     hello: String
-    houses(
-      price: PriceInput
-      roomAmount: [RoomAmountInput]
-      roomType: [RoomTypeInput]
-      mapBounds: MapBoundsInput
-    ): [House]
+    houses(price: PriceInput, roomAmount: [RoomAmountInput], roomType: [RoomTypeInput], mapBounds: MapBoundsInput): [House]
     house(postId: Int): House
     user: User
   }
@@ -244,12 +238,7 @@
     logout: ReturnMessage
 
     createUser(email: String, password: String): Account
-    editUser(
-      gender: String
-      displayName: String
-      phoneNumber: String
-      email: String
-    ): User
+    editUser(gender: String, displayName: String, phoneNumber: String, email: String): User
 
     addHouse(
       postUser: UserInput
@@ -302,6 +291,6 @@
       fileList: [FileInput]
     ): House
   }
-`;
+`
 
-module.exports = { typeDefs };
+module.exports = { typeDefs }

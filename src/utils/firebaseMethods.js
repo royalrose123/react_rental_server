@@ -1,34 +1,34 @@
-global.XMLHttpRequest = require("xhr2");
+global.XMLHttpRequest = require('xhr2')
 
-const firebase = require("firebase/app");
-const admin = require("firebase-admin");
-const { v4: uuid } = require("uuid");
-require("firebase/storage");
-require("firebase/database");
-require("firebase/auth");
+const firebase = require('firebase/app')
+const admin = require('firebase-admin')
+const { v4: uuid } = require('uuid')
+require('firebase/storage')
+require('firebase/database')
+require('firebase/auth')
 
-const { isPointInRange } = require("../utils/isPointInRange");
+const { isPointInRange } = require('../utils/isPointInRange')
 
-const { TOKEN_ERROR } = require("../constants/firebaseMessage");
-const serviceAccount = require("../react-rental-db23c-firebase-adminsdk-t97xi-4e2d0d4613.json");
+const { TOKEN_ERROR } = require('../constants/firebaseMessage')
+const serviceAccount = require('../react-rental-db23c-firebase-adminsdk-t97xi-4e2d0d4613.json')
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCp5j6T62AOD-7qkEt_0lMkepvGMNiBl6w",
-  authDomain: "react-rental-db23c.firebaseapp.com",
-  databaseURL: "https://react-rental-db23c.firebaseio.com",
-  projectId: "react-rental-db23c",
-  storageBucket: "react-rental-db23c.appspot.com",
-  messagingSenderId: "1041973803814",
-  appId: "1:1041973803814:web:226798689401c1fd8c1fe7",
-  measurementId: "G-MJ7528V4EE",
-};
+  apiKey: 'AIzaSyCp5j6T62AOD-7qkEt_0lMkepvGMNiBl6w',
+  authDomain: 'react-rental-db23c.firebaseapp.com',
+  databaseURL: 'https://react-rental-db23c.firebaseio.com',
+  projectId: 'react-rental-db23c',
+  storageBucket: 'react-rental-db23c.appspot.com',
+  messagingSenderId: '1041973803814',
+  appId: '1:1041973803814:web:226798689401c1fd8c1fe7',
+  measurementId: 'G-MJ7528V4EE',
+}
 
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig)
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://react-rental-db23c.firebaseio.com",
-});
+  databaseURL: 'https://react-rental-db23c.firebaseio.com',
+})
 
 function getFirebaseData({ ref, orderBy = null, value, searchForm }) {
   if (orderBy) {
@@ -38,61 +38,53 @@ function getFirebaseData({ ref, orderBy = null, value, searchForm }) {
       .ref(ref)
       .orderByChild(orderBy)
       .equalTo(value)
-      .once("value")
+      .once('value')
       .then((snap) => snap.val())
       .then((val) => {
-        return Array.isArray(val)
-          ? val.filter((item) => item)[0]
-          : Object.values(val)[0];
-      });
+        return Array.isArray(val) ? val.filter((item) => item)[0] : Object.values(val)[0]
+      })
   } else {
     // get all data
     return firebase
       .database()
       .ref(ref)
-      .once("value")
+      .once('value')
       .then((snap) => {
-        const data = snap.val();
+        const data = snap.val()
         if (searchForm) {
-          const { price, roomAmount, roomType, mapBounds } = searchForm;
-          const { min, max } = price;
+          const { price, roomAmount, roomType, mapBounds } = searchForm
+          const { min, max } = price
 
           return data
             .filter((house) => house.price >= min && house.price <= max) // 對 price 做 filter
             .filter((house) => {
               // 對 roomAmount 做 filter
-              const roomAmountValue = roomAmount
-                .filter((amount) => amount.isActive)
-                .map((amount) => amount.value);
+              const roomAmountValue = roomAmount.filter((amount) => amount.isActive).map((amount) => amount.value)
 
-              if (roomAmountValue.length === 0) return house; // roomAmountValue 為空代表沒有 filter
+              if (roomAmountValue.length === 0) return house // roomAmountValue 為空代表沒有 filter
 
-              const isMatchRoomAmount =
-                roomAmountValue.indexOf(house.roomAmount) !== -1;
+              const isMatchRoomAmount = roomAmountValue.indexOf(house.roomAmount) !== -1
 
-              return isMatchRoomAmount;
+              return isMatchRoomAmount
             })
             .filter((house) => {
               // 對 roomType 做 filter
-              const roomTypeValue = roomType
-                .filter((amount) => amount.isActive)
-                .map((amount) => amount.value);
+              const roomTypeValue = roomType.filter((amount) => amount.isActive).map((amount) => amount.value)
 
-              if (roomTypeValue.length === 0) return house; // roomTypeValue 為空代表沒有 filter
+              if (roomTypeValue.length === 0) return house // roomTypeValue 為空代表沒有 filter
 
-              const isMatchRoomType =
-                roomTypeValue.indexOf(house.roomType) !== -1;
+              const isMatchRoomType = roomTypeValue.indexOf(house.roomType) !== -1
 
-              return isMatchRoomType;
+              return isMatchRoomType
             })
-            .filter((house) => isPointInRange(house.latLng, mapBounds));
+            .filter((house) => isPointInRange(house.latLng, mapBounds))
         } else {
-          return data;
+          return data
         }
       })
       .then((val) => {
-        return val ? Object.keys(val).map((key) => val[key]) : [];
-      });
+        return val ? Object.keys(val).map((key) => val[key]) : []
+      })
   }
 }
 
@@ -100,43 +92,43 @@ function setFirebaseData(ref, id, data) {
   return firebase
     .database()
     .ref(`${ref}/${id}`)
-    .update({ ...data });
+    .update({ ...data })
 }
 
 function uploadFile(file, postId) {
   return new Promise(async (resolve, reject) => {
-    const { createReadStream, filename, mimetype, encoding } = await file;
+    const { createReadStream, filename, mimetype, encoding } = await file
 
-    const stream = createReadStream();
+    const stream = createReadStream()
 
-    const storage = firebase.storage();
-    const storageRef = storage.ref();
+    const storage = firebase.storage()
+    const storageRef = storage.ref()
 
-    const newFilename = `${filename}`;
-    const pathname = `images/house${postId}/${uuid()}_${newFilename}`;
+    const newFilename = `${filename}`
+    const pathname = `images/house${postId}/${uuid()}_${newFilename}`
 
-    const tempFile = [];
+    const tempFile = []
 
     stream
-      .on("data", async (data) => {
-        tempFile.push(data);
+      .on('data', async (data) => {
+        tempFile.push(data)
       })
-      .on("end", async () => {
-        var newbuff = Buffer.concat(tempFile);
+      .on('end', async () => {
+        var newbuff = Buffer.concat(tempFile)
 
         storageRef
           .child(pathname)
           .put(newbuff)
           .then((result) => {
-            let pathReference = storageRef.child(pathname);
+            let pathReference = storageRef.child(pathname)
 
             pathReference.getDownloadURL().then(function (url) {
-              return resolve({ fileUrl: url, filename: newFilename });
-            });
+              return resolve({ fileUrl: url, filename: newFilename })
+            })
           })
-          .catch((error) => console.log("uploadImg error", error));
-      });
-  });
+          .catch((error) => console.log('uploadImg error', error))
+      })
+  })
 }
 
 function createUserAccount(data) {
@@ -144,29 +136,29 @@ function createUserAccount(data) {
     .auth()
     .createUserWithEmailAndPassword(data.email, data.password)
     .then(async (result) => {
-      const { user } = result;
-      const { uid, email, displayName, photoURL } = user;
+      const { user } = result
+      const { uid, email, displayName, photoURL } = user
 
       const userData = {
         userId: uid,
         email,
-        gender: "",
-        phone: "",
+        gender: '',
+        phone: '',
         userCreateTime: new Date().getTime(),
         userName: displayName,
         userPhoto: photoURL,
-      };
+      }
 
-      await user.sendEmailVerification();
+      await user.sendEmailVerification()
 
-      await setFirebaseData("user", uid, userData);
+      await setFirebaseData('user', uid, userData)
 
-      return { uid };
+      return { uid }
     })
     .catch((error) => {
-      console.log("error", error);
-      return error;
-    });
+      console.log('error', error)
+      return error
+    })
 }
 
 function login(data) {
@@ -174,18 +166,18 @@ function login(data) {
     .auth()
     .signInWithEmailAndPassword(data.email, data.password)
     .then(async (result) => {
-      const { user } = result;
-      const { emailVerified, uid } = user;
+      const { user } = result
+      const { emailVerified, uid } = user
       if (!emailVerified) {
-        throw new Error("信箱尚未驗證，請先前往驗證");
+        throw new Error('信箱尚未驗證，請先前往驗證')
       } else {
-        const token = await user.getIdToken(true);
+        const token = await user.getIdToken(true)
 
         const userInfo = await getFirebaseData({
-          ref: "user",
-          orderBy: "userId",
+          ref: 'user',
+          orderBy: 'userId',
           value: uid,
-        });
+        })
 
         return {
           token,
@@ -196,48 +188,48 @@ function login(data) {
           emailVerified: userInfo.emailVerified,
           phoneNumber: userInfo.phoneNumber,
           gender: userInfo.gender,
-        };
+        }
       }
-    });
+    })
 }
 
 async function logout(data) {
-  await firebase.auth().signOut();
+  await firebase.auth().signOut()
 
-  const user = await firebase.auth().currentUser;
+  const user = await firebase.auth().currentUser
 
   if (!user) {
-    return { returnCode: "0000", message: "Logout successfully!" };
+    return { returnCode: '0000', message: 'Logout successfully!' }
   } else {
-    throw new Error("登出失敗");
+    throw new Error('登出失敗')
   }
 }
 
 function verifyToken(token) {
-  const newToken = token.split("Bearer ").join("");
+  const newToken = token.split('Bearer ').join('')
 
   return admin
     .auth()
     .verifyIdToken(newToken)
     .then((decodedToken) => {
-      let uid = decodedToken.uid;
+      let uid = decodedToken.uid
 
-      return uid;
+      return uid
     })
     .catch(function (error) {
-      console.log("checkToken error 11111", error);
+      console.log('checkToken error 11111', error)
 
-      const { errorInfo } = error;
-      const { code } = errorInfo;
+      const { errorInfo } = error
+      const { code } = errorInfo
 
-      const errorMessage = TOKEN_ERROR[code];
+      const errorMessage = TOKEN_ERROR[code]
 
       if (errorMessage) {
-        throw new Error(TOKEN_ERROR[code]);
+        throw new Error(TOKEN_ERROR[code])
       } else {
-        throw new Error(code);
+        throw new Error(code)
       }
-    });
+    })
 }
 
 module.exports = {
@@ -248,4 +240,4 @@ module.exports = {
   login,
   logout,
   verifyToken,
-};
+}
