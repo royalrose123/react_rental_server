@@ -17,6 +17,7 @@
     "eslint-config-standard": "^16.0.2",
     "firebase": "^7.21.1",
     "firebase-admin": "^9.2.0",
+    "lodash": "^4.17.21",
     "prettier": "^2.2.1",
     "uuid": "^8.3.0",
     "xhr2": "^0.2.0"

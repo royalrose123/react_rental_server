@@ -1,3 +1,4 @@
+const { findIndex } = require('lodash')
 const { getFirebaseData, setFirebaseData, uploadFile, createUserAccount, login, logout } = require('./utils/firebaseMethods')
 
 const resolvers = {
@@ -103,6 +104,33 @@ const resolvers = {
         .catch((error) => {
           console.log('error 44444', error)
         })
+    },
+
+    updateQuestion: async (root, args, context) => {
+      const { postId, isQuestion } = args
+
+      const currentHouse = await getFirebaseData({ ref: 'house', orderBy: 'postId', value: postId })
+
+      if (!currentHouse.questionList) currentHouse.questionList = []
+
+      const questionListLength = currentHouse.questionList.length
+      const newQuestionId = questionListLength === 0 ? 0 : currentHouse.questionList[questionListLength - 1].questionId + 1
+
+      const newQuestionItem = {
+        ...args,
+        questionId: newQuestionId,
+      }
+
+      if (isQuestion) {
+        currentHouse.questionList.push(newQuestionItem)
+      } else {
+      }
+
+      const result = await setFirebaseData('house', postId, {
+        ...currentHouse,
+      })
+
+      return result
     },
   },
 }

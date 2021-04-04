@@ -91,6 +91,28 @@ const typeDefs = gql`
     isExisted: Boolean
   }
 
+  input ResponseInput {
+    userId: String
+    displayName: String
+    response: String
+  }
+
+  type Response {
+    userId: String
+    displayName: String
+    response: String
+  }
+
+  type Question {
+    questionId: Int
+    postId: Int
+    userId: String
+    displayName: String
+    question: String
+    isQuestion: Boolean
+    responseList: [Response]
+  }
+
   type File {
     file: Upload
     fileUrl: String
@@ -186,6 +208,7 @@ const typeDefs = gql`
     latLng: LatLng
     fileList: [File]
     houseImg: [Image]
+    questionList: [Question]
   }
 
   input TokenInput {
@@ -290,6 +313,16 @@ const typeDefs = gql`
       latLng: LatLngInput
       fileList: [FileInput]
     ): House
+
+    updateQuestion(
+      questionId: Int
+      postId: Int
+      userId: String
+      displayName: String
+      question: String
+      isQuestion: Boolean
+      responseList: [ResponseInput]
+    ): Question
   }
 `
 
