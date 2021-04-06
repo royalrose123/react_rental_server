@@ -1,7 +1,26 @@
 const { findIndex } = require('lodash')
 const { getFirebaseData, setFirebaseData, uploadFile, createUserAccount, login, logout } = require('./utils/firebaseMethods')
+const { GraphQLScalarType, Kind } = require('graphql')
+
+const dateScalar = new GraphQLScalarType({
+  name: 'Date',
+  description: 'Date custom scalar type',
+  serialize(value) {
+    return new Date(value).getTime() // Convert outgoing Date to integer for JSON
+  },
+  parseValue(value) {
+    return new Date(value) // Convert incoming integer to Date
+  },
+  parseLiteral(ast) {
+    if (ast.kind === Kind.INT) {
+      return new Date(parseInt(ast.value, 10)) // Convert hard-coded AST string to integer and then to Date
+    }
+    return null // Invalid hard-coded value (not an integer)
+  },
+})
 
 const resolvers = {
+  Date: dateScalar,
   Query: {
     hello: () => 'world',
     houses: (root, args, context) => {
@@ -107,7 +126,7 @@ const resolvers = {
     },
 
     updateQuestion: async (root, args, context) => {
-      const { postId, isQuestion } = args
+      const { postId, isQuestion, questionId } = args
 
       const currentHouse = await getFirebaseData({ ref: 'house', orderBy: 'postId', value: postId })
 
@@ -116,14 +135,24 @@ const resolvers = {
       const questionListLength = currentHouse.questionList.length
       const newQuestionId = questionListLength === 0 ? 0 : currentHouse.questionList[questionListLength - 1].questionId + 1
 
-      const newQuestionItem = {
-        ...args,
-        questionId: newQuestionId,
-      }
-
       if (isQuestion) {
+        const newQuestionItem = {
+          ...args,
+          questionId: newQuestionId,
+        }
+
         currentHouse.questionList.push(newQuestionItem)
       } else {
+        const replyIndex = findIndex(currentHouse.questionList, { questionId })
+
+        if (!currentHouse.questionList[replyIndex].replyList) currentHouse.questionList[replyIndex].replyList = []
+
+        const newReplyItem = {
+          ...args,
+          questionId,
+        }
+
+        currentHouse.questionList[replyIndex].replyList.push(newReplyItem)
       }
 
       const result = await setFirebaseData('house', postId, {

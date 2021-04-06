@@ -1,6 +1,8 @@
 const { gql } = require('apollo-server')
 
 const typeDefs = gql`
+  scalar Date
+
   # House schema
   input DeviceInput {
     airConditioner: Boolean
@@ -91,16 +93,18 @@ const typeDefs = gql`
     isExisted: Boolean
   }
 
-  input ResponseInput {
+  input ReplyInput {
     userId: String
     displayName: String
-    response: String
+    submitTime: Date
+    message: String
   }
 
-  type Response {
+  type Reply {
     userId: String
     displayName: String
-    response: String
+    submitTime: Date
+    message: String
   }
 
   type Question {
@@ -108,9 +112,10 @@ const typeDefs = gql`
     postId: Int
     userId: String
     displayName: String
-    question: String
+    submitTime: Date
+    message: String
     isQuestion: Boolean
-    responseList: [Response]
+    replyList: [Reply]
   }
 
   type File {
@@ -319,9 +324,10 @@ const typeDefs = gql`
       postId: Int
       userId: String
       displayName: String
-      question: String
+      submitTime: Date
+      message: String
       isQuestion: Boolean
-      responseList: [ResponseInput]
+      replyList: [ReplyInput]
     ): Question
   }
 `
