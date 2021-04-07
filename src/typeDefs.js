@@ -3,6 +3,10 @@ const { gql } = require('apollo-server')
 const typeDefs = gql`
   scalar Date
 
+  type Subscription {
+    houseSocket: House
+  }
+
   # House schema
   input DeviceInput {
     airConditioner: Boolean
@@ -328,7 +332,7 @@ const typeDefs = gql`
       message: String
       isQuestion: Boolean
       replyList: [ReplyInput]
-    ): Question
+    ): House
   }
 `
 

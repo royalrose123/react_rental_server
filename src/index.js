@@ -7,7 +7,13 @@ const { verifyToken } = require('./utils/firebaseMethods')
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: async ({ req }) => {
+  context: async ({ req, connection }) => {
+    if (connection) {
+      const userId = await verifyToken(connection.context.authorization)
+
+      return { userId }
+    }
+
     const token = req.headers.authorization || ''
 
     if (!token) return
@@ -15,6 +21,9 @@ const server = new ApolloServer({
     const userId = await verifyToken(token)
 
     return { userId }
+  },
+  subscriptions: {
+    path: '/subscriptions',
   },
 })
 

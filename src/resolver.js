@@ -2,6 +2,13 @@ const { findIndex } = require('lodash')
 const { getFirebaseData, setFirebaseData, uploadFile, createUserAccount, login, logout } = require('./utils/firebaseMethods')
 const { GraphQLScalarType, Kind } = require('graphql')
 
+const { PubSub } = require('apollo-server')
+let pubsub = new PubSub()
+
+let houseSocket = {
+  subscribe: () => pubsub.asyncIterator('QUESTION_UPDATE'),
+}
+
 const dateScalar = new GraphQLScalarType({
   name: 'Date',
   description: 'Date custom scalar type',
@@ -20,6 +27,9 @@ const dateScalar = new GraphQLScalarType({
 })
 
 const resolvers = {
+  Subscription: {
+    houseSocket,
+  },
   Date: dateScalar,
   Query: {
     hello: () => 'world',
@@ -154,6 +164,8 @@ const resolvers = {
 
         currentHouse.questionList[replyIndex].replyList.push(newReplyItem)
       }
+
+      pubsub.publish('QUESTION_UPDATE', { houseSocket: currentHouse })
 
       const result = await setFirebaseData('house', postId, {
         ...currentHouse,

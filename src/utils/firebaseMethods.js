@@ -89,10 +89,12 @@ function getFirebaseData({ ref, orderBy = null, value, searchForm }) {
 }
 
 function setFirebaseData(ref, id, data) {
-  return firebase
+  firebase
     .database()
     .ref(`${ref}/${id}`)
     .update({ ...data })
+
+  return data
 }
 
 function uploadFile(file, postId) {
