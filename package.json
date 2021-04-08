@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "APOLLO_KEY=service:react-rental:_oZFkuR25oQNNDRMImxdDQ APOLLO_GRAPH_VARIANT=current nodemon ./src/index.js",
+    "start": "APOLLO_KEY=service:react-rental:_oZFkuR25oQNNDRMImxdDQ APOLLO_GRAPH_VARIANT=current node ./src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
