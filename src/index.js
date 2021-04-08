@@ -9,6 +9,10 @@ const server = new ApolloServer({
   resolvers,
   introspection: true,
   playground: true,
+  cors: {
+    origin: '*',
+    credentials: true,
+  },
   context: async ({ req, connection }) => {
     if (connection) {
       const userId = await verifyToken(connection.context.authorization)
