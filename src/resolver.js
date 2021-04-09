@@ -5,10 +5,6 @@ const { GraphQLScalarType, Kind } = require('graphql')
 const { PubSub } = require('apollo-server')
 let pubsub = new PubSub()
 
-let houseSocket = {
-  subscribe: () => pubsub.asyncIterator('QUESTION_UPDATE'),
-}
-
 const dateScalar = new GraphQLScalarType({
   name: 'Date',
   description: 'Date custom scalar type',
@@ -28,7 +24,9 @@ const dateScalar = new GraphQLScalarType({
 
 const resolvers = {
   Subscription: {
-    houseSocket,
+    houseSocket: {
+      subscribe: () => pubsub.asyncIterator('QUESTION_UPDATE'),
+    },
   },
   Date: dateScalar,
   Query: {
