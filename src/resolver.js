@@ -56,7 +56,7 @@ const resolvers = {
       const data = { ...args }
       const result = await login(data)
 
-      return result
+      return { ...result }
     },
     logout: async (root, args, context) => {
       const data = { ...args }

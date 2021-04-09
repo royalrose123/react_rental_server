@@ -231,6 +231,7 @@ const typeDefs = gql`
 
   type User {
     token: String
+    refreshToken: String
     gender: String
     userId: String
     displayName: String
@@ -239,6 +240,7 @@ const typeDefs = gql`
     photoURL: String
     emailVerified: Boolean
     userPost: [House]
+    expiredTime: Date
   }
 
   input UserInput {

@@ -175,6 +175,9 @@ function login(data) {
       } else {
         const token = await user.getIdToken(true)
 
+        const tokenInfo = await admin.auth().verifyIdToken(token)
+        const { exp: expiredTime } = tokenInfo
+
         const userInfo = await getFirebaseData({
           ref: 'user',
           orderBy: 'userId',
@@ -190,6 +193,8 @@ function login(data) {
           emailVerified: userInfo.emailVerified,
           phoneNumber: userInfo.phoneNumber,
           gender: userInfo.gender,
+          refreshToken: user.refreshToken,
+          expiredTime: expiredTime * 1000,
         }
       }
     })
