@@ -49,6 +49,14 @@ const resolvers = {
 
       return houses.filter((house) => house.postUser.userId === userId)
     },
+    userLikeHouse: async (parent, args, context) => {
+      const { userId } = parent
+
+      const currentUser = await getFirebaseData({ ref: 'user', orderBy: 'userId', value: userId })
+      const houses = await getFirebaseData({ ref: 'house' })
+
+      return houses.filter((house) => findIndex(currentUser.userLikeHouse, { postId: house.postId }) !== -1)
+    },
   },
 
   Mutation: {
@@ -131,6 +139,34 @@ const resolvers = {
         .catch((error) => {
           console.log('error 44444', error)
         })
+    },
+
+    likeHouse: async (root, args, context) => {
+      const { postId, userId } = { ...args }
+
+      const currentUser = await getFirebaseData({ ref: 'user', orderBy: 'userId', value: userId })
+
+      if (!currentUser.userLikeHouse) currentUser.userLikeHouse = []
+
+      const newLikeHouse = {
+        postId,
+      }
+
+      const postIndex = findIndex(currentUser.userLikeHouse, { postId })
+
+      if (postIndex !== -1) {
+        currentUser.userLikeHouse = currentUser.userLikeHouse
+          .slice(0, postIndex)
+          .concat(currentUser.userLikeHouse.slice(postIndex + 1, currentUser.userLikeHouse.length))
+      } else {
+        currentUser.userLikeHouse.push(newLikeHouse)
+      }
+
+      const result = await setFirebaseData('user', userId, {
+        ...currentUser,
+      })
+
+      return result
     },
 
     updateQuestion: async (root, args, context) => {

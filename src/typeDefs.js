@@ -7,6 +7,11 @@ const typeDefs = gql`
     houseSocket: House
   }
 
+  type LikeHouse {
+    postId: Int
+    userId: String
+  }
+
   # House schema
   input DeviceInput {
     airConditioner: Boolean
@@ -241,6 +246,7 @@ const typeDefs = gql`
     emailVerified: Boolean
     userPost: [House]
     expiredTime: Date
+    userLikeHouse: [House]
   }
 
   input UserInput {
@@ -324,6 +330,8 @@ const typeDefs = gql`
       latLng: LatLngInput
       fileList: [FileInput]
     ): House
+
+    likeHouse(postId: Int, userId: String): LikeHouse
 
     updateQuestion(
       questionId: Int
