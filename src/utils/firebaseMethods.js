@@ -195,6 +195,7 @@ function login(data) {
           gender: userInfo.gender,
           refreshToken: user.refreshToken,
           expiredTime: expiredTime * 1000,
+          userLikeHouse: userInfo.userLikeHouse,
         }
       }
     })
