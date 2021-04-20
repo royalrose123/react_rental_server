@@ -58,6 +58,16 @@ const resolvers = {
       return houses.filter((house) => findIndex(currentUser.userLikeHouse, { postId: house.postId }) !== -1)
     },
   },
+  House: {
+    postUser: async (parent, args, context) => {
+      const { postUser } = parent
+      const { userId } = postUser
+
+      const newPostUser = await getFirebaseData({ ref: 'user', orderBy: 'userId', value: userId })
+
+      return { ...newPostUser }
+    },
+  },
 
   Mutation: {
     login: async (root, args, context) => {
@@ -166,7 +176,7 @@ const resolvers = {
         ...currentUser,
       })
 
-      return result
+      return { ...result, postId }
     },
 
     updateQuestion: async (root, args, context) => {
