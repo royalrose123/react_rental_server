@@ -10,7 +10,7 @@ const server = new ApolloServer({
   introspection: true,
   playground: true,
   cors: {
-    origin: ['https://live-life-rental.herokuapp.com/', 'http://localhost:3001'],
+    origin: ['https://live-life-rental.herokuapp.com', 'http://localhost:3001'],
     credentials: true,
   },
   context: async ({ req, connection }) => {
