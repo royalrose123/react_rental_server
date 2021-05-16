@@ -41,18 +41,19 @@ const server = new ApolloServer({
 
 const app = express()
 
-const corsOptions = {
-  origin: ['https://live-life-rental.herokuapp.com', 'http://localhost:3001'],
-  credentials: true,
-}
+// const corsOptions = {
+//   origin: ['https://live-life-rental.herokuapp.com', 'http://localhost:3001'],
+//   credentials: true,
+// }
 
-app.use(cors(corsOptions))
+// app.use(cors(corsOptions))
 
 // server.applyMiddleware({ app, cors: { origin: ['https://live-life-rental.herokuapp.com', 'http://localhost:3001'], credentials: true } })
 server.applyMiddleware({
   app,
   path: '/',
-  cors: false,
+  // cors: false,
+  cors: { credentials: true, origin: true },
 })
 app.listen({ port: process.env.PORT || 4000 }, () => console.log(`Server is running on the port 4000`))
 // server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
