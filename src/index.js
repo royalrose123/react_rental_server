@@ -42,7 +42,7 @@ const server = new ApolloServer({
 const app = express()
 
 const corsOptions = {
-  origin: true,
+  origin: ['https://live-life-rental.herokuapp.com', 'http://localhost:3001'],
   credentials: true,
 }
 
