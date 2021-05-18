@@ -1,6 +1,4 @@
-const express = require('express')
-const cors = require('cors')
-const { ApolloServer } = require('apollo-server-express')
+const { ApolloServer } = require('apollo-server')
 const { typeDefs } = require('./typeDefs')
 const { resolvers } = require('./resolver')
 
@@ -11,10 +9,10 @@ const server = new ApolloServer({
   resolvers,
   introspection: true,
   playground: true,
-  // cors: {
-  //   origin: ['https://live-life-rental.herokuapp.com', 'http://localhost:3001'],
-  //   credentials: true,
-  // },
+  cors: {
+    origin: ['https://live-life-rental.herokuapp.com', 'http://localhost:3001'],
+    credentials: true,
+  },
   context: async ({ req, connection }) => {
     if (connection) {
       const token = connection.context.authorization
@@ -39,23 +37,6 @@ const server = new ApolloServer({
   },
 })
 
-const app = express()
-
-// const corsOptions = {
-//   origin: ['https://live-life-rental.herokuapp.com', 'http://localhost:3001'],
-//   credentials: true,
-// }
-
-// app.use(cors(corsOptions))
-
-// server.applyMiddleware({ app, cors: { origin: ['https://live-life-rental.herokuapp.com', 'http://localhost:3001'], credentials: true } })
-server.applyMiddleware({
-  app,
-  path: '/',
-  // cors: false,
-  cors: { credentials: true, origin: true },
+server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
+  console.log(`🚀 Server ready at ${url}`)
 })
-app.listen({ port: process.env.PORT || 4000 }, () => console.log(`Server is running on the port 4000`))
-// server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
-//   console.log(`🚀 Server ready at ${url}`)
-// })
